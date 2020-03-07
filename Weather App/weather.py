@@ -8,7 +8,7 @@ import requests, json, pytemperature, datetime
 from datetime import date, datetime, timedelta, timezone
 date1 = date.today()
 # Enter your API key here 
-api_key = "8b154a3d84fdf70745bdcf69f2ce39bf"
+api_key = "8bXXXXXXXX"
 
 # base_url variable to store url 
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
