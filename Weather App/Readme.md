@@ -7,3 +7,5 @@ datetime
 pytemperature
 openweatherapi
 twilio
+requests
+json
