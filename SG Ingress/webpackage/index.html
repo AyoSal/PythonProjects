@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+    <body style="background-color: cadetblue;">
+        <center>
+            <h1>AyoSal Security Group Update Tool</h1>
+        </center>
+
+        <center>
+            <h2>Please insert details of ingress rule to be added to your security group</h2>
+        </center>
+
+        <form name="ip-form" id="rulesForm" action="/save" method="POST">
+
+            <fieldset>
+                <legend style="font-size:30px"> Security Group Values</legend>
+                <div class="form-group">
+                    <label for="fname" style="font-size:160%;">CidrIP:</label><br>
+                    <input type="text" value="" class="form-control" id="ipv4" name="CidrIP" placeholder="xxx.xxx.xxx.xxx" style="font-size:160%;"id="CIPname" name="CIPname" /><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="lname" style="font-size:160%;">Description: </label><br>
+                    <input type="text" value="" class="form-control" name="Description" style="font-size:160%;"id="Dname" name="Dname" /><br>
+                </div>
+
+                <div class="formBox">
+                    <label for="FPname" style="font-size:160%;">FromPort: </label><br>
+                    <input type="number" value="" name="FromPort" style="font-size:160%;"id="FPname" name="FPname" /><br>
+                </div>
+
+                <div class="formBox">
+                    <label for="Gname" style="font-size:160%;">GroupName: </label><br>
+                    <input type="text" value="" name="GroupName" style="font-size:160%;"id="Gname" name="Gname" /><br>
+                </div>
+
+                <div class="formBox">
+                    <label for="IPname" style="font-size:160%;">IpProtocol:  </label><br>
+                    <input type="text" value="" name="IpProtocol" style="font-size:160%;"id="IPname" name="IPname" /><br>
+                </div>
+
+                <div class="formBox">
+                    <label for="lname" style="font-size:160%;">ToPort: </label><br>
+                    <input type="number" value="" name="ToPort" style="font-size:160%;"id="TPname" name="TPname" /><br>
+                </div>
+            </fieldset>
+
+            <input value="Submit" style="font-size:160%;"type="submit" id="saveform">
+            <input type="Reset" style="font-size:160%;">
+        </form>
+
+        <script src="http://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous">
+        </script>
+        <script src="/script.js"></script>
+    </body>
+</html>
+
+<!-- <script>
+
+function runPyScript(e){
+  // var object = {};
+  e.preventDefault();
+  // $(“#rulesForm”).submit();
+// FormData.forEach(function(value, key){
+  //  object[key] = value;
+//});
+  $.ajax({
+    method: "POST",
+    contentType: 'application/json',
+      url: "/save",
+      data: $("#rulesform").serialize(),
+  }).done(function(){
+    alert('finished python script');
+            });
+  }
+
+// do something with the response
+//response= runPyScript('data to process');
+//console.log(response);
+</script> -->
