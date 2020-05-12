@@ -33,15 +33,16 @@ EC2Group='hello-world-ec2'
 HWAvailabilityZone1='us-east-1a'
 HWAvailabilityZone2='us-east-1b'
 InstanceId=''
+Gtags=[{"Key": "Name", "Value": "ec2-hello-world-service"}]
 
 ec2 = boto3.resource('ec2')
 client = boto3.client('elb')
 
-def make_vpc_igw(ec2, ig_tag):
+def make_vpc_igw(ec2, ig_tag, Gtags):
     # Create VPC
     vpc = ec2.create_vpc(CidrBlock='192.16.0.0/16')
     print(GREEN + "The VPC is now created as " + "hello-world-service")
-    vpc.create_tags(Tags=[{"Key": "Name", "Value": "hello-world-service"}])
+    vpc.create_tags(Tags=Gtags)
     vpc.wait_until_available()
 
     # Enable public dns hostname for ease of access via SSH
@@ -51,23 +52,22 @@ def make_vpc_igw(ec2, ig_tag):
     #Create Internet Gateway and attach it to the VPC
     internet_gateway = ec2.create_internet_gateway()
     vpc.attach_internet_gateway(InternetGatewayId=internet_gateway.id)
-    ig_tag =internet_gateway.create_tags(Tags=[{"Key": "Name", "Value": "hello-world-service"}])
+    ig_tag =internet_gateway.create_tags(Tags=Gtags)
 
-def make_snet_rtable(vpc, route, rt_tag, ec2, subnet1a_tag, subnet1b_tag):
+def make_snet_rtable(vpc, route, rt_tag, ec2, subnet1a_tag, subnet1b_tag, Gtags):
     # Create a RouteTable and a Public Route
-try:    
     routetable = vpc.create_route_table()
     route = routetable.create_route(DestinationCidrBlock='0.0.0.0/0', GatewayId=internet_gateway.id)
-    rt_tag = routetable.create_tags(Tags=[{"Key": "Name", "Value": "hello-world-service"}])
+    rt_tag = routetable.create_tags(Tags=Gtags)
     # Create Subnet and associate it with RouteTable
     subnet1a = ec2.create_subnet(CidrBlock=HW1aCidrBlock, AvailabilityZone=HWAvailabilityZone1, VpcId=vpc.id)
     subnet1b = ec2.create_subnet(CidrBlock=HW1bCidrBlock, AvailabilityZone=HWAvailabilityZone2, VpcId=vpc.id)
     routetable.associate_with_subnet(SubnetId=subnet1a.id)
     routetable.associate_with_subnet(SubnetId=subnet1b.id)
-    subnet1a_tag = subnet1a.create_tags(Tags=[{"Key": "Name", "Value": "hello-world-service"}])
-    subnet1b_tag = subnet1b.create_tags(Tags=[{"Key": "Name", "Value": "hello-world-service"}])
+    subnet1a_tag = subnet1a.create_tags(Tags=Gtags)
+    subnet1b_tag = subnet1b.create_tags(Tags=Gtags)
     print(GREEN + "The Internet Gateway, Routetables and Subnets are now created")
-except: client.meta.client.exceptions.
+
 
 # Create security groups for loadbalancer and instance
 def make_sg(ec2, lbtag, ec2tag):
@@ -85,17 +85,16 @@ def make_sg(ec2, lbtag, ec2tag):
 
 # Create a key pair and store it in a file
 def make_key(ec2):
-try: 
-    outfile = open('hello-world.pem', 'w') 
-    key_pair = ec2.create_key_pair(KeyName='hello-world')
-    KeyPairOut = str(key_pair.key_material)
-    outfile.write(KeyPairOut)
-except: client.meta.client.exceptions.KeyPairAlreadyExists as err:
-    print("KeyPair {} already exists!".format(err.response['Error']['KeyName']
-
-
+    try: 
+        outfile = open("hello-world.pem", "w')
+        key_pair = ec2.create_key_pair(KeyName="hello-world")
+        KeyPairOut = str(key_pair.key_material)
+        outfile.write(KeyPairOut)
+    except: client.meta.client.exceptions.KeyPairAlreadyExists as err:
+            print("KeyPair {} already exists!")
+    
 #Define Userdata from AMi and Create Linux ec2 Instance 
-def make_ec2(ec2, subnet1a,ec2securitygroup, instances):
+def make_ec2(ec2, subnet1a, ec2securitygroup, instances):
     user_data = '''#!/bin/bash
     sudo -i
     service httpd restart
@@ -117,32 +116,37 @@ def make_ec2(ec2, subnet1a,ec2securitygroup, instances):
 
 #Create Loadbalancer
 def make_lb(subnet1a,subnet1b,lbsecuritygroup, lb_response):
-    lb_response = client.create_load_balancer(
-        LoadBalancerName='hello-world-lb',
-        Listeners=[
-            {
-                'Protocol': 'HTTP',
-                'LoadBalancerPort': 80,
-                'InstanceProtocol': 'HTTP',
-                'InstancePort': 80
-                
-            },
-        ],
-        
-        Subnets=[
-            subnet1a.id, subnet1b.id
-        ],
-        SecurityGroups=[
-            lbsecuritygroup.id,
-        ],
-        Scheme='',
-        Tags=[
-            {
-                'Key': 'Name',
-                'Value': 'lb-hello-world-service'
-            },
-        ]
-    )
+    try: 
+        client = boto3.client('elb') 
+        lb_response = client.create_load_balancer(
+            LoadBalancerName='hello-world-lb',
+            Listeners=[
+                {
+                    'Protocol': 'HTTP',
+                    'LoadBalancerPort': 80,
+                    'InstanceProtocol': 'HTTP',
+                    'InstancePort': 80
+                    
+                },
+            ],
+            
+            Subnets=[
+                subnet1a.id, subnet1b.id
+            ],
+            SecurityGroups=[
+                lbsecuritygroup.id,
+            ],
+            Scheme='',
+            Tags=[
+                {
+                    'Key': 'Name',
+                    'Value': 'lb-hello-world-service'
+                },
+            ]
+        )
+    except botocore.exceptions.elbError as error:LoadbalancerAlreadyExists!
+        raise error 
+        print("The LoadBalancer Already Exists")
 
 #Register ec2 behind Loadbalancer
 def reg_ec2(ec2,InstanceId,reg_response,loadb_response):
@@ -176,4 +180,15 @@ def outp(loadb_response):
     print(GREEN + "The Infrastructure is now created") 
     print (YELLOW + "Please wait a few moments for the App to be reachable at " + loadb_response['LoadBalancerDescriptions'][0]['DNSName'])
 
+def main():
+    make_vpc_igw(ec2, ig_tag, Gtags)
+    make_snet_rtable(vpc, route, rt_tag, ec2, subnet1a_tag, subnet1b_tag, Gtags)
+    make_sg(ec2, lbtag, ec2tag)
+    make_key(ec2)
+    make_ec2(ec2, subnet1a, ec2securitygroup, instances)
+    make_lb(subnet1a,subnet1b,lbsecuritygroup, lb_response)
+    reg_ec2(ec2,InstanceId,reg_response,loadb_response)
+    outp(loadb_response)
 
+if __name__ == "__main__":
+    main()
