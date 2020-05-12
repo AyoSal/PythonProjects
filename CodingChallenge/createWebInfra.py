@@ -80,6 +80,7 @@ def make_sg(ec2, lbtag, ec2tag):
     ec2securitygroup = ec2.create_security_group(GroupName=EC2Group, Description='Access to EC2', VpcId=vpc.id)
     #ec2securitygroup.authorize_ingress(CidrIp='0.0.0.0/0', IpProtocol='tcp', FromPort=22, ToPort=22)
     ec2securitygroup.authorize_ingress(CidrIp='0.0.0.0/0', IpProtocol='tcp', FromPort=80, ToPort=80)
+    ec2securitygroup.authorize_ingress(GroupId=lbsecuritygroup.id, IpProtocol='tcp', FromPort=80, ToPort=80)
     ec2tag = ec2securitygroup.create_tags(Tags=[{"Key": "Name", "Value": "ec2-hello-world-service"}])
     print(BLUE + "The Loadbalancer and EC2 Security Groups are now created")
 
