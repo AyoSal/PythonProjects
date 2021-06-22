@@ -5,6 +5,7 @@ import boto3, datetime, threading
 # Version: 1.0
 # Author: Ayo Salawu
 # Date: February 27, 2020
+## Testing for codeql scanning
 # ===============================================================================
 
 # Import required modules
